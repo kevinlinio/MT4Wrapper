@@ -1,14 +1,18 @@
 package com.opsunv.mt4.api;
 
 import com.opsunv.mt4.api.bean.TradeRecord;
+import com.opsunv.mt4.api.exception.InitFailedException;
 
-public class MT4ManagerAPI implements ManagerAPI{
+public class MT4 implements ManagerAPI{
 	
 	//manager的指针地址
 	private int ptr;
 	
-	public MT4ManagerAPI() {
+	public MT4() {
 		ptr = init();
+		if(ptr<0){
+		  throw new InitFailedException();
+		}
 	}
 	
 	/**
@@ -80,7 +84,7 @@ public class MT4ManagerAPI implements ManagerAPI{
 	private static native void WinsockStartup();
 	
 	static{
-		System.loadLibrary("MT4Warpper");
+		System.loadLibrary("MT4Wrapper");
 		WinsockStartup();
 	}
 
