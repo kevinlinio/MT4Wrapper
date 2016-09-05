@@ -4,6 +4,14 @@
 
 #include "MT4ManagerAPI.h"
 
+/*
+ * use javap -s class to find method signature
+ */
+void setValue(JNIEnv * env, jobject obj, jclass clazz, const char *methodName, const char *sig, void* val){
+	jmethodID method = env->GetMethodID(clazz,methodName,sig);
+	env->CallVoidMethod(obj,method,val);
+}
+
 CManagerFactory Factory;
 
 /*
@@ -24,7 +32,6 @@ JNIEXPORT void JNICALL Java_com_opsunv_mt4_api_MT4_WinsockStartup
  */
 JNIEXPORT jint JNICALL Java_com_opsunv_mt4_api_MT4_init
 	(JNIEnv * env, jobject obj){
-	
 	CManagerInterface *manager;
 	
 	if (Factory.IsValid() == FALSE || (manager = Factory.Create(ManAPIVersion)) == NULL){
@@ -54,7 +61,6 @@ JNIEXPORT jint JNICALL Java_com_opsunv_mt4_api_MT4_Release
  */
 JNIEXPORT jstring JNICALL Java_com_opsunv_mt4_api_MT4_ErrorDescription
 	(JNIEnv * env, jobject obj, jint ptr, jint code){
-
 	CManagerInterface *manager = (CManagerInterface*)ptr;
 	LPCSTR str = manager->ErrorDescription(code);
 
@@ -69,7 +75,6 @@ JNIEXPORT jstring JNICALL Java_com_opsunv_mt4_api_MT4_ErrorDescription
  */
 JNIEXPORT jint JNICALL Java_com_opsunv_mt4_api_MT4_Connect
 	(JNIEnv * env, jobject obj,jint ptr, jstring server){
-
 	CManagerInterface *manager = (CManagerInterface*)ptr;
 
 	const char* srv = (env)->GetStringUTFChars(server,JNI_FALSE);
@@ -86,9 +91,7 @@ JNIEXPORT jint JNICALL Java_com_opsunv_mt4_api_MT4_Connect
  */
 JNIEXPORT jint JNICALL Java_com_opsunv_mt4_api_MT4_Disconnect
 	(JNIEnv *, jobject,jint ptr){
-
 	CManagerInterface *manager = (CManagerInterface*)ptr;
-
 	return manager->Disconnect();
 }
 
@@ -146,12 +149,15 @@ JNIEXPORT jobjectArray JNICALL Java_com_opsunv_mt4_api_MT4_TradesRequest
 	
 	
 	for(int i=0;i<total;i++){
+		TradeRecord tr = records[i];
+
 		jmethodID cid = env->GetMethodID(clazz,"<init>","()V");
 		jobject record = env->NewObject(clazz,cid);
 		
-		jmethodID setOrder = env->GetMethodID(clazz,"setOrder","(I)V");
-
-		env->CallVoidMethod(record,setOrder,123);
+		setValue(env,record,clazz,"setOrder","(I)V",(void*)tr.order);
+		setValue(env,record,clazz,"setLogin","(I)V",(void*)tr.login);
+		setValue(env,record,clazz,"setSymbol","(Ljava/lang/String;)V",env->NewStringUTF(tr.symbol));
+		//etc...
 
 		env->SetObjectArrayElement(arr,i,record);
 	}

@@ -1,7 +1,5 @@
 package com.opsunv.mt4.api;
 
-
-
 public class Test {
 	public static void main(String[] args) throws Exception{
 		ManagerAPI mt4 = new MT4();
