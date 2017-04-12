@@ -7,10 +7,27 @@
 /*
  * use javap -s class to find method signature
  */
-void setValue(JNIEnv * env, jobject obj, jclass clazz, const char *methodName, const char *sig, void* val){
-	jmethodID method = env->GetMethodID(clazz,methodName,sig);
-	env->CallVoidMethod(obj,method,val);
+void setStringValue(JNIEnv * env, jobject obj, jclass clazz, const char *methodName,  const char* val) {
+	jmethodID method = env->GetMethodID(clazz, methodName, "(Ljava/lang/String;)V");
+	env->CallVoidMethod(obj, method, env->NewStringUTF(val));
 }
+
+void setIntValue(JNIEnv * env, jobject obj, jclass clazz, const char *methodName, jint val) {
+	jmethodID method = env->GetMethodID(clazz, methodName, "(I)V");
+	env->CallVoidMethod(obj, method, val);
+}
+
+void setLongValue(JNIEnv * env, jobject obj, jclass clazz, const char *methodName, jlong val) {
+	jmethodID method = env->GetMethodID(clazz, methodName, "(J)V");
+	env->CallVoidMethod(obj, method, val);
+}
+
+void setDoubleValue(JNIEnv * env, jobject obj, jclass clazz, const char *methodName, jdouble val) {
+	jmethodID method = env->GetMethodID(clazz, methodName, "(D)V");
+	env->CallVoidMethod(obj, method, val);
+}
+
+
 
 CManagerFactory Factory;
 
@@ -39,7 +56,6 @@ JNIEXPORT jint JNICALL Java_com_opsunv_mt4_api_MT4_init
 	}
 
 	return (unsigned int)manager;
-
 }
 
 /*
@@ -123,6 +139,26 @@ JNIEXPORT jint JNICALL Java_com_opsunv_mt4_api_MT4_Login
 	return rs;
 }
 
+void __stdcall pumpingModelCallback(int code)
+{
+}
+
+/*
+ * Class:     com_opsunv_mt4_api_MT4
+ * Method:    PumpingSwitch
+ * Signature: ()I
+ */
+JNIEXPORT jboolean JNICALL Java_com_opsunv_mt4_api_MT4_PumpingSwitch
+  (JNIEnv *env, jobject obj, jint ptr){
+
+	CManagerInterface *manager = (CManagerInterface*)ptr;
+
+	int pumpingResult = manager->PumpingSwitch(pumpingModelCallback, 0, 0, CLIENT_FLAGS_HIDETICKS | CLIENT_FLAGS_HIDEMAIL | CLIENT_FLAGS_HIDENEWS | CLIENT_FLAGS_HIDEONLINE | CLIENT_FLAGS_HIDEUSERS);
+
+    return pumpingResult == TRUE ? JNI_TRUE : JNI_FALSE;
+}
+
+
 /*
  * Class:     com_opsunv_mt4_api_MT4
  * Method:    TradesRequest
@@ -154,9 +190,9 @@ JNIEXPORT jobjectArray JNICALL Java_com_opsunv_mt4_api_MT4_TradesRequest
 		jmethodID cid = env->GetMethodID(clazz,"<init>","()V");
 		jobject record = env->NewObject(clazz,cid);
 		
-		setValue(env,record,clazz,"setOrder","(I)V",(void*)tr.order);
-		setValue(env,record,clazz,"setLogin","(I)V",(void*)tr.login);
-		setValue(env,record,clazz,"setSymbol","(Ljava/lang/String;)V",env->NewStringUTF(tr.symbol));
+		setIntValue(env, record, clazz, "setOrder", tr.order);
+		setIntValue(env, record, clazz, "setLogin", tr.login);
+		setStringValue(env, record, clazz, "setSymbol",tr.symbol);
 		//etc...
 
 		env->SetObjectArrayElement(arr,i,record);
@@ -164,6 +200,61 @@ JNIEXPORT jobjectArray JNICALL Java_com_opsunv_mt4_api_MT4_TradesRequest
 
 	return arr;
 }
+
+
+/*
+* Class:     com_opsunv_mt4_api_MT4
+* Method:    TradesRequest
+* Signature: ()[Lcom/opsunv/mt4/api/bean/TradeRecord;
+*/
+JNIEXPORT jobjectArray JNICALL Java_com_opsunv_mt4_api_MT4_SummaryGetAll
+(JNIEnv * env, jobject obj, jint ptr) {
+
+	CManagerInterface *manager = (CManagerInterface*)ptr;
+
+	int total = 0;
+	SymbolSummary * records = manager->SummaryGetAll(&total);
+
+	if (total == 0) {
+		return NULL;
+	}
+
+	jclass clazz = env->FindClass("com/opsunv/mt4/api/bean/SymbolSummary");
+	if (clazz == NULL) {
+		printf("error");
+		fflush(stdout);
+	}
+
+	jobjectArray arr = env->NewObjectArray(total, clazz, NULL);
+	jmethodID cid = env->GetMethodID(clazz, "<init>", "()V");
+
+	for (int i = 0; i<total; i++) {
+		SymbolSummary ss = records[i];
+		jobject record = env->NewObject(clazz, cid);
+		setStringValue(env, record, clazz, "setSymbol", ss.symbol);
+		setIntValue(env, record, clazz, "setCount", ss.count);
+		setIntValue(env, record, clazz, "setDigits", ss.digits);
+		setIntValue(env, record, clazz, "setType", ss.type);
+		setIntValue(env, record, clazz, "setOrders", ss.orders);
+		setLongValue(env, record, clazz, "setBuyLots", ss.buylots);
+		setLongValue(env, record, clazz, "setSellLots", ss.selllots);
+		setDoubleValue(env, record, clazz, "setBuyPrice", ss.buyprice);
+		setDoubleValue(env, record, clazz, "setSellPrice", ss.sellprice);
+		setDoubleValue(env, record, clazz, "setProfit", ss.profit);
+		setIntValue(env, record, clazz, "setCovOrders", ss.covorders);
+		setLongValue(env, record, clazz, "setCovBuyLots", ss.covbuylots);
+		setLongValue(env, record, clazz, "setCovSellLots", ss.covselllots);
+		setDoubleValue(env, record, clazz, "setCovBuyPrice", ss.covbuyprice);
+		setDoubleValue(env, record, clazz, "setCovSellPrice", ss.covsellprice);
+		setDoubleValue(env, record, clazz, "setCovProfit", ss.covprofit);
+
+		env->SetObjectArrayElement(arr, i, record);
+	}
+
+	return arr;
+}
+
+
 
 /*
  * Class:     com_opsunv_mt4_api_MT4

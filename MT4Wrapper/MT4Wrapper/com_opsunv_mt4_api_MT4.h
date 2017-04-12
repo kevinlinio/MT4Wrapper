@@ -63,6 +63,16 @@ JNIEXPORT jint JNICALL Java_com_opsunv_mt4_api_MT4_IsConnected
 JNIEXPORT jint JNICALL Java_com_opsunv_mt4_api_MT4_Login
   (JNIEnv *, jobject, jint, jint, jstring);
 
+
+/*
+ * Class:     com_opsunv_mt4_api_MT4
+ * Method:    Login
+ * Signature: (IILjava/lang/String;)I
+ */
+JNIEXPORT jboolean JNICALL Java_com_opsunv_mt4_api_MT4_PumpingSwitch
+  (JNIEnv *, jobject, jint);
+
+
 /*
  * Class:     com_opsunv_mt4_api_MT4
  * Method:    TradesRequest
@@ -78,6 +88,14 @@ JNIEXPORT jobjectArray JNICALL Java_com_opsunv_mt4_api_MT4_TradesRequest
  */
 JNIEXPORT jobjectArray JNICALL Java_com_opsunv_mt4_api_MT4_TradesUserHistory
   (JNIEnv *, jobject, jint);
+
+/*
+* Class:     com_opsunv_mt4_api_MT4
+* Method:    getSummaryPositionsAll
+* Signature: (I)[Lcom/opsunv/mt4/api/bean/SymbolSummary;
+*/
+JNIEXPORT jobjectArray JNICALL Java_com_opsunv_mt4_api_MT4_SummaryGetAll
+(JNIEnv *, jobject, jint);
 
 /*
  * Class:     com_opsunv_mt4_api_MT4

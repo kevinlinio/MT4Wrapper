@@ -1,5 +1,6 @@
 package com.opsunv.mt4.api;
 
+import com.opsunv.mt4.api.bean.SymbolSummary;
 import com.opsunv.mt4.api.bean.TradeRecord;
 import com.opsunv.mt4.api.exception.InitFailedException;
 
@@ -66,7 +67,11 @@ public class MT4 implements ManagerAPI{
 	 * @return
 	 */
 	private native int Login(int ptr,int uid,String password);
-	
+
+
+	private native boolean PumpingSwitch(int ptr);
+
+
 	//orders
 	
 	/**
@@ -77,6 +82,8 @@ public class MT4 implements ManagerAPI{
 	private native TradeRecord[] TradesRequest(int ptr);
 	
 	private native TradeRecord[] TradesUserHistory(int ptr);
+
+	private native SymbolSummary[] SummaryGetAll(int ptr);
 	
 	/**
 	 * 加载socket
@@ -120,6 +127,11 @@ public class MT4 implements ManagerAPI{
 	}
 
 	@Override
+	public boolean switchToPumpingMode() {
+		return PumpingSwitch(ptr);
+	}
+
+	@Override
 	public TradeRecord[] getTradesRequest() {
 		return TradesRequest(ptr);
 	}
@@ -128,5 +140,11 @@ public class MT4 implements ManagerAPI{
 	public TradeRecord[] getTradesUserHistory() {
 		return null;
 	}
+
+	@Override
+	public SymbolSummary[] getSummaryPositionsAll() {
+		return SummaryGetAll(ptr);
+	}
+
 
 }
