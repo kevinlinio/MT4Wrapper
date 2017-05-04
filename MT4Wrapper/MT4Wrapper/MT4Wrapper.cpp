@@ -251,6 +251,8 @@ JNIEXPORT jobjectArray JNICALL Java_com_opsunv_mt4_api_MT4_SummaryGetAll
 		env->SetObjectArrayElement(arr, i, record);
 	}
 
+    manager->MemFree(records);
+
 	return arr;
 }
 
